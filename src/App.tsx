@@ -4,6 +4,7 @@ import { MessageBubble } from './components/MessageBubble';
 import { ChatInput } from './components/ChatInput';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
+import { TherapistList } from './components/TherapistList';
 import { useThemeStore } from './stores/theme';
 import { useChatStore } from './stores/chat';
 import type { Message } from './types';
@@ -14,6 +15,7 @@ export default function App() {
   const { t } = useTranslation();
   const { isDark } = useThemeStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showTherapists, setShowTherapists] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { createChat, getCurrentChat, addMessage } = useChatStore();
 
@@ -22,7 +24,6 @@ export default function App() {
   }, [isDark]);
 
   useEffect(() => {
-    // Create initial chat if none exists
     const currentChat = getCurrentChat();
     if (!currentChat) {
       const newChat = createChat();
@@ -48,6 +49,9 @@ export default function App() {
     const currentChat = getCurrentChat();
     if (!currentChat) return;
 
+    // Hide therapist recommendations when user sends a new message
+    setShowTherapists(false);
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -58,19 +62,27 @@ export default function App() {
 
     addMessage(currentChat.id, userMessage);
 
-    // Simulate AI response
+    // Simulate AI response with psychological analysis
     setTimeout(() => {
+      const analysis = files.length > 0
+        ? "Based on the materials you've shared, I notice signs of anxiety and stress. Let's explore these feelings together. I recommend consulting with one of our professional therapists below for a more detailed evaluation."
+        : `I hear that you're feeling ${content.toLowerCase().includes('anxious') ? 'anxious' : 'concerned'}. It's completely normal to have these feelings. Let's work through this together. I recommend speaking with a professional therapist who can provide personalized guidance. Below are some highly qualified therapists who specialize in these areas.`;
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: files.length > 0 
-          ? `I've received your files:\n${files.map(f => `- ${f.file.name} (${f.type})`).join('\n')}`
-          : `I received your message: "${content}"\n\nThis is a simulated response. In a real application, this would be connected to an AI backend.`,
+        content: analysis,
         timestamp: new Date().toISOString(),
         files: [],
       };
 
       addMessage(currentChat.id, assistantMessage);
+      
+      // Show therapist recommendations after AI response
+      setTimeout(() => {
+        setShowTherapists(true);
+        scrollToBottom();
+      }, 500);
     }, 1000);
   };
 
@@ -99,12 +111,17 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0">
         <Header onMenuClick={() => setIsSidebarOpen(true)} />
 
-        {/* Messages */}
+        {/* Messages and Recommendations */}
         <div className="flex-grow overflow-y-auto message-grid">
           <div className="max-w-3xl mx-auto">
             {currentChat?.messages.map((message) => (
               <MessageBubble key={message.id} message={message} />
             ))}
+            {showTherapists && (
+              <div className={`transition-opacity duration-500 ${showTherapists ? 'opacity-100' : 'opacity-0'}`}>
+                <TherapistList />
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
         </div>
