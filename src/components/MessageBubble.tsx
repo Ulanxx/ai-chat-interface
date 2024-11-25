@@ -71,14 +71,54 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         </ReactMarkdown>
         {message.files && message.files.length > 0 && (
           <div className="mt-3 grid gap-3 grid-cols-1 sm:grid-cols-2">
-            {message.files.map((file) => (
-              <div key={file.id} className={`flex items-center gap-2 p-2 rounded-xl ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
-                <File className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-                <span className={`text-sm truncate ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                  {file.file.name}
-                </span>
-              </div>
-            ))}
+            {message.files.map((file) => {
+              console.log(file);
+              if(!file.file.type) return null;
+              const isImage = file.file.type.startsWith('image/');
+              const isVideo = file.file.type.startsWith('video/');
+              const isAudio = file.file.type.startsWith('audio/');
+
+              if (isImage) {
+                return (
+                  <div key={file.id} className="relative aspect-video rounded-xl overflow-hidden">
+                    <img 
+                      src={URL.createObjectURL(file.file)}
+                      alt={file.file.name}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </div>
+                );
+              }
+
+              if (isVideo) {
+                return (
+                  <div key={file.id} className="relative aspect-video rounded-xl overflow-hidden">
+                    <video 
+                      src={URL.createObjectURL(file.file)}
+                      controls
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </div>
+                );
+              }
+
+              if (isAudio) {
+                return (
+                  <div key={file.id} className={`flex items-center gap-2 p-2 rounded-xl ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                    <audio src={URL.createObjectURL(file.file)} controls className="w-full" />
+                  </div>
+                );
+              }
+
+              return (
+                <div key={file.id} className={`flex items-center gap-2 p-2 rounded-xl ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                  <File className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                  <span className={`text-sm truncate ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                    {file.file.name}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
         <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>
