@@ -22,7 +22,7 @@ const therapists = [
     experience: 15,
     rating: 4.8,
     specialties: ['Trauma', 'PTSD', 'Addiction'],
-    available: true,
+    available: false,
   },
   {
     id: '3',
@@ -32,7 +32,7 @@ const therapists = [
     experience: 8,
     rating: 4.7,
     specialties: ['Family Issues', 'Couples Therapy', 'Child Psychology'],
-    available: true,
+    available: false,
   },
 ];
 

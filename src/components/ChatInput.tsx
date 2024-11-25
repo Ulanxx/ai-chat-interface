@@ -35,7 +35,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className={`border-t ${isDark ? 'border-white/10 bg-dark-800/50' : 'border-gray-200 bg-white'} backdrop-blur-lg`}>
+    <div className={`sticky bottom-0 border-t ${isDark ? 'border-white/10 bg-dark-800/80' : 'border-gray-200 bg-white/80'} backdrop-blur-lg`}>
       {showUpload && (
         <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <FileUpload onUpload={handleUpload} />

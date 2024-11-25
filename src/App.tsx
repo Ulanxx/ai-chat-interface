@@ -1,17 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MessageBubble } from './components/MessageBubble';
 import { ChatInput } from './components/ChatInput';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { TherapistList } from './components/TherapistList';
+import { TherapistProfilePage } from './pages/TherapistProfile';
 import { useThemeStore } from './stores/theme';
 import { useChatStore } from './stores/chat';
 import type { Message } from './types';
 import type { UploadedFile } from './components/FileUpload';
-import './i18n';
 
-export default function App() {
+function Chat() {
   const { t } = useTranslation();
   const { isDark } = useThemeStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -43,13 +44,12 @@ export default function App() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [getCurrentChat()?.messages]);
+  }, [getCurrentChat()?.messages, showTherapists]);
 
   const handleSendMessage = async (content: string, files: UploadedFile[] = []) => {
     const currentChat = getCurrentChat();
     if (!currentChat) return;
 
-    // Hide therapist recommendations when user sends a new message
     setShowTherapists(false);
 
     const userMessage: Message = {
@@ -62,11 +62,10 @@ export default function App() {
 
     addMessage(currentChat.id, userMessage);
 
-    // Simulate AI response with psychological analysis
     setTimeout(() => {
       const analysis = files.length > 0
-        ? "Based on the materials you've shared, I notice signs of anxiety and stress. Let's explore these feelings together. I recommend consulting with one of our professional therapists below for a more detailed evaluation."
-        : `I hear that you're feeling ${content.toLowerCase().includes('anxious') ? 'anxious' : 'concerned'}. It's completely normal to have these feelings. Let's work through this together. I recommend speaking with a professional therapist who can provide personalized guidance. Below are some highly qualified therapists who specialize in these areas.`;
+        ? t('ai.fileAnalysis')
+        : t('ai.messageAnalysis', { feeling: content.toLowerCase().includes('anxious') ? t('emotions.anxious') : t('emotions.concerned') });
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -78,7 +77,6 @@ export default function App() {
 
       addMessage(currentChat.id, assistantMessage);
       
-      // Show therapist recommendations after AI response
       setTimeout(() => {
         setShowTherapists(true);
         scrollToBottom();
@@ -89,8 +87,7 @@ export default function App() {
   const currentChat = getCurrentChat();
 
   return (
-    <div className={`flex h-screen bg-gray-50 dark:bg-dark-900 transition-colors duration-200`}>
-      {/* Sidebar Overlay */}
+    <div className={`flex h-screen ${isDark ? 'bg-dark-900' : 'bg-gray-50'} transition-colors duration-200`}>
       <div
         className={`fixed inset-0 bg-black/70 z-20 lg:hidden transition-opacity ${
           isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -98,20 +95,19 @@ export default function App() {
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      {/* Sidebar */}
       <div
-        className={`fixed lg:static w-64 h-full bg-white dark:bg-dark-800 z-30 transition-transform duration-300 transform ${
+        className={`fixed lg:static w-64 h-full ${
+          isDark ? 'bg-dark-800' : 'bg-white'
+        } z-30 transition-transform duration-300 transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } tech-glow`}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <Header onMenuClick={() => setIsSidebarOpen(true)} />
 
-        {/* Messages and Recommendations */}
         <div className="flex-grow overflow-y-auto message-grid">
           <div className="max-w-3xl mx-auto">
             {currentChat?.messages.map((message) => (
@@ -126,9 +122,17 @@ export default function App() {
           </div>
         </div>
 
-        {/* Input */}
         <ChatInput onSendMessage={handleSendMessage} />
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Chat />} />
+      <Route path="/therapist/:id" element={<TherapistProfilePage />} />
+    </Routes>
   );
 }
